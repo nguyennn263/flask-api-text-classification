@@ -38,4 +38,5 @@ def predict():
     return jsonify({'prediction': labels[predicted[0]]})  # Trả về kết quả dưới dạng JSON
 
 if __name__ == '__main__':
-    app.run(debug=True, host='0.0.0.0', port=5000)
+    # app.run(debug=True, host='0.0.0.0', port=5000)
+    app.run()
