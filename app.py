@@ -17,30 +17,25 @@ model.eval()
 def predict():
     data = request.get_json()  # Lấy dữ liệu JSON từ yêu cầu
     sentence = data.get('text', '')  # Lấy văn bản cần phân loại
-
+    print(f"Received sentence: {sentence}")  # In câu nhận được để kiểm tra
     # Tokenize câu
-    encoding = tokenizer(sentence, return_tensors='pt', padding=True, truncation=True, max_length=512)
+    model.eval()
+    encode = tokenizer(sentence, padding=True, truncation=True, return_tensors="pt")
+    
+    input_ids = encode['input_ids']
+    attention_mask = encode['attention_mask']
+    
+    device = torch.device("cpu")
 
-    input_ids = encoding['input_ids']
-    attention_mask = encoding['attention_mask']
-
-    # Đưa dữ liệu vào device (GPU/CPU)
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     input_ids = input_ids.to(device)
     attention_mask = attention_mask.to(device)
-    model.to(device)
-
-    # Dự đoán với mô hình
+    
     with torch.no_grad():
-        outputs = model(input_ids, attention_mask=attention_mask)
-        logits = outputs.logits
-        predicted_class = torch.argmax(logits, dim=1).item()  # Dự đoán lớp (positive/negative)
-
-    # Các nhãn phân loại
+        outputs = model(input_ids)
+        _, predicted = torch.max(outputs, 1)
+    predicted = predicted.cpu().numpy()
     labels = ['negative', 'positive']
-    prediction = labels[predicted_class]
-
-    return jsonify({'prediction': prediction})  # Trả về kết quả dưới dạng JSON
+    return jsonify({'prediction': labels[predicted[0]]})  # Trả về kết quả dưới dạng JSON
 
 if __name__ == '__main__':
     app.run(debug=True, host='0.0.0.0', port=5000)
