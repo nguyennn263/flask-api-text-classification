@@ -9,8 +9,9 @@ app = Flask(__name__)
 tokenizer = AutoTokenizer.from_pretrained("bert-base-uncased")
 
 # Khởi tạo mô hình TextClassifier và tải trọng số
+device = torch.device("cpu")
 model = TextClassifier(vocable_size=30522, embedding_dim=128, num_classes=2)  # Tạo lại mô hình
-model.load_state_dict(torch.load("TextClassifier_trained.pth"))  # Tải mô hình đã huấn luyện
+model.load_state_dict(torch.load("TextClassifier_trained.pth", map_location=device))   # Tải mô hình đã huấn luyện
 model.eval()
 
 @app.route('/predict', methods=['POST'])
@@ -24,8 +25,6 @@ def predict():
     
     input_ids = encode['input_ids']
     attention_mask = encode['attention_mask']
-    
-    device = torch.device("cpu")
 
     input_ids = input_ids.to(device)
     attention_mask = attention_mask.to(device)
